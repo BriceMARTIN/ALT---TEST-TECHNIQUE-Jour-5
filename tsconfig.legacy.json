@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "./legacy",
+    "outDir": "./dist/legacy",
+    "composite": true
+  },
+  "include": ["legacy/**/*.ts"]
+}
