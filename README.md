@@ -62,3 +62,4 @@ ALT's technical test day 5
 
 - Added a golden master test comparing the legacy and refactored output to ensure we're avoiding regression
 - On top of function output, we're also comparing output JSON file values
+- Added unit tests (24 total) to test calculateVolumeDiscount, calculateTax, calculateShipping, buildLoyaltyPoints and getCurrencyRate
