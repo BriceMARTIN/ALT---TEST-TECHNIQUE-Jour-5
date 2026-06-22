@@ -1,5 +1,34 @@
 import { Customer, Order, Product, Promotion, ShippingZone } from '../types';
-import { HANDLING_FEE, LOYALTY_RATIO, MAX_DISCOUNT, SHIPPING_LIMIT, TAX } from '../constants';
+import {
+  HANDLING_FEE,
+  LOYALTY_RATIO,
+  MAX_DISCOUNT,
+  SHIPPING_LIMIT,
+  TAX,
+  VOLUME_DISCOUNT_TIER_1,
+  VOLUME_DISCOUNT_TIER_2,
+  VOLUME_DISCOUNT_TIER_3,
+  VOLUME_DISCOUNT_TIER_4,
+  VOLUME_DISCOUNT_RATE_1,
+  VOLUME_DISCOUNT_RATE_2,
+  VOLUME_DISCOUNT_RATE_3,
+  VOLUME_DISCOUNT_RATE_4,
+  LOYALTY_THRESHOLD_LOW,
+  LOYALTY_THRESHOLD_HIGH,
+  LOYALTY_RATE_LOW,
+  LOYALTY_RATE_HIGH,
+  LOYALTY_CAP_LOW,
+  LOYALTY_CAP_HIGH,
+  WEIGHT_THRESHOLD_HEAVY,
+  WEIGHT_THRESHOLD_MEDIUM,
+  WEIGHT_THRESHOLD_LIGHT,
+  ZONE_PREMIUM_MULTIPLIER,
+  CURRENCY_RATE_USD,
+  CURRENCY_RATE_GBP,
+  CURRENCY_RATE_EUR,
+  SHIPPING_RATE_OVERWEIGHT,
+  SHIPPING_RATE_MEDIUM
+} from '../constants';
 
 export type CustomerTotals = {
   subtotal: number;
@@ -71,17 +100,17 @@ export const calculateOrderTotals = (
 // Compute the volume-based discount using thresholds and premium level rules.
 export const calculateVolumeDiscount = (subtotal: number, level: string): number => {
   let discount = 0;
-  if (subtotal > 50) {
-    discount = subtotal * 0.05;
+  if (subtotal > VOLUME_DISCOUNT_TIER_1) {
+    discount = subtotal * VOLUME_DISCOUNT_RATE_1;
   }
-  if (subtotal > 100) {
-    discount = subtotal * 0.10;
+  if (subtotal > VOLUME_DISCOUNT_TIER_2) {
+    discount = subtotal * VOLUME_DISCOUNT_RATE_2;
   }
-  if (subtotal > 500) {
-    discount = subtotal * 0.15;
+  if (subtotal > VOLUME_DISCOUNT_TIER_3) {
+    discount = subtotal * VOLUME_DISCOUNT_RATE_3;
   }
-  if (subtotal > 1000 && level === 'PREMIUM') {
-    discount = subtotal * 0.20;
+  if (subtotal > VOLUME_DISCOUNT_TIER_4 && level === 'PREMIUM') {
+    discount = subtotal * VOLUME_DISCOUNT_RATE_4;
   }
   return discount;
 };
@@ -98,11 +127,11 @@ export const applyWeekendBonus = (discount: number, firstOrderDate: string): num
 // Calculate a loyalty discount from accumulated customer points.
 export const calculateLoyaltyDiscount = (points: number): number => {
   let loyaltyDiscount = 0;
-  if (points > 100) {
-    loyaltyDiscount = Math.min(points * 0.1, 50);
+  if (points > LOYALTY_THRESHOLD_LOW) {
+    loyaltyDiscount = Math.min(points * LOYALTY_RATE_LOW, LOYALTY_CAP_LOW);
   }
-  if (points > 500) {
-    loyaltyDiscount = Math.min(points * 0.15, 100);
+  if (points > LOYALTY_THRESHOLD_HIGH) {
+    loyaltyDiscount = Math.min(points * LOYALTY_RATE_HIGH, LOYALTY_CAP_HIGH);
   }
   return loyaltyDiscount;
 };
@@ -160,19 +189,19 @@ export const calculateShipping = (
 ): number => {
   const shipZone = shippingZones[zone] ?? { zone, base: 5.0, per_kg: 0.5 };
   if (subtotal >= SHIPPING_LIMIT) {
-    return weight > 20 ? roundTwoDecimals((weight - 20) * 0.25) : 0;
+    return weight > WEIGHT_THRESHOLD_HEAVY ? roundTwoDecimals((weight - WEIGHT_THRESHOLD_HEAVY) * SHIPPING_RATE_OVERWEIGHT) : 0;
   }
 
-  if (weight > 10) {
-    return roundTwoDecimals(shipZone.base + (weight - 10) * shipZone.per_kg);
+  if (weight > WEIGHT_THRESHOLD_MEDIUM) {
+    return roundTwoDecimals(shipZone.base + (weight - WEIGHT_THRESHOLD_MEDIUM) * shipZone.per_kg);
   }
 
-  if (weight > 5) {
-    return roundTwoDecimals(shipZone.base + (weight - 5) * 0.3);
+  if (weight > WEIGHT_THRESHOLD_LIGHT) {
+    return roundTwoDecimals(shipZone.base + (weight - WEIGHT_THRESHOLD_LIGHT) * SHIPPING_RATE_MEDIUM);
   }
 
   const base = shipZone.base;
-  return roundTwoDecimals((zone === 'ZONE3' || zone === 'ZONE4') ? base * 1.2 : base);
+  return roundTwoDecimals((zone === 'ZONE3' || zone === 'ZONE4') ? base * ZONE_PREMIUM_MULTIPLIER : base);
 };
 
 // Determine handling fees based on the number of items in the order.
@@ -189,12 +218,12 @@ export const calculateHandling = (itemCount: number): number => {
 // Return the currency conversion rate used for output totals.
 export const getCurrencyRate = (currency: string): number => {
   if (currency === 'USD') {
-    return 1.1;
+    return CURRENCY_RATE_USD;
   }
   if (currency === 'GBP') {
-    return 0.85;
+    return CURRENCY_RATE_GBP;
   }
-  return 1;
+  return CURRENCY_RATE_EUR;
 };
 
 export const buildReport = (
